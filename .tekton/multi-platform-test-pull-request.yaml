@@ -208,7 +208,7 @@ spec:
             workspace: workspace-arm64
           - name: basic-auth
             workspace: git-auth
-      - name: clone-repository-s390x
+      - name: clone-repository-g6xlarge-amd64
         params:
           - name: url
             value: $(params.git-url)
@@ -233,35 +233,7 @@ spec:
               - "true"
         workspaces:
           - name: output
-            workspace: workspace-s390x
-          - name: basic-auth
-            workspace: git-auth
-      - name: clone-repository-ppc64le
-        params:
-          - name: url
-            value: $(params.git-url)
-          - name: revision
-            value: $(params.revision)
-        runAfter:
-          - init
-        taskRef:
-          kind: Task
-          params:
-            - name: name
-              value: git-clone
-            - name: bundle
-              value: quay.io/redhat-appstudio-tekton-catalog/task-git-clone:0.1@sha256:729ed7f3b7a3da2658c80655039989a66da207b91036893409bd1305e69a655f
-            - name: kind
-              value: task
-          resolver: bundles
-        when:
-          - input: $(tasks.init.results.build)
-            operator: in
-            values:
-              - "true"
-        workspaces:
-          - name: output
-            workspace: workspace-ppc64le
+            workspace: workspace-g6xlarge-amd64
           - name: basic-auth
             workspace: git-auth
       - name: prefetch-dependencies
@@ -359,10 +331,10 @@ spec:
         workspaces:
           - name: source
             workspace: workspace-arm64
-      - name: build-container-s390x
+      - name: build-container-g6xlarge
         params:
           - name: IMAGE
-            value: $(params.output-image)-s390x
+            value: $(params.output-image)-g6xlarge
           - name: DOCKERFILE
             value: $(params.dockerfile)
           - name: CONTEXT
@@ -376,9 +348,9 @@ spec:
           - name: COMMIT_SHA
             value: $(tasks.clone-repository.results.commit)
           - name: PLATFORM
-            value: linux/s390x
+            value: linux-g6xlarge/amd64
         runAfter:
-          - clone-repository-s390x
+          - clone-repository-g6xlarge-amd64
         taskRef:
           params:
             - name: name
@@ -395,45 +367,7 @@ spec:
               - "true"
         workspaces:
           - name: source
-            workspace: workspace-s390x
-
-      - name: build-container-ppc64le
-        params:
-          - name: IMAGE
-            value: $(params.output-image)-ppc64le
-          - name: DOCKERFILE
-            value: $(params.dockerfile)
-          - name: CONTEXT
-            value: $(params.path-context)
-          - name: HERMETIC
-            value: $(params.hermetic)
-          - name: PREFETCH_INPUT
-            value: $(params.prefetch-input)
-          - name: IMAGE_EXPIRES_AFTER
-            value: $(params.image-expires-after)
-          - name: COMMIT_SHA
-            value: $(tasks.clone-repository.results.commit)
-          - name: PLATFORM
-            value: linux/ppc64le
-        runAfter:
-          - clone-repository-ppc64le
-        taskRef:
-          params:
-            - name: name
-              value: buildah-remote
-            - name: bundle
-              value: quay.io/redhat-appstudio-tekton-catalog/task-buildah-remote:0.1@sha256:a75001715eca643305f3d6c19e9e4c1d598003f0f0c0bc8148c7d90f0b19f2f0
-            - name: kind
-              value: task
-          resolver: bundles
-        when:
-          - input: $(tasks.init.results.build)
-            operator: in
-            values:
-              - "true"
-        workspaces:
-          - name: source
-            workspace: workspace-ppc64le
+            workspace: workspace-g6xlarge-amd64
       - name: build-container
         params:
           - name: IMAGE
@@ -449,8 +383,7 @@ spec:
         runAfter:
           - build-container-amd64
           - build-container-arm64
-          - build-container-s390x
-          - build-container-ppc64le
+          - build-container-g6xlarge
         taskRef:
           params:
             - name: name
@@ -539,18 +472,7 @@ spec:
             requests:
               storage: 1Gi
         status: {}
-    - name: workspace-s390x
-      volumeClaimTemplate:
-        metadata:
-          creationTimestamp: null
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 1Gi
-        status: {}
-    - name: workspace-ppc64le
+    - name: workspace-g6xlarge-amd64
       volumeClaimTemplate:
         metadata:
           creationTimestamp: null
